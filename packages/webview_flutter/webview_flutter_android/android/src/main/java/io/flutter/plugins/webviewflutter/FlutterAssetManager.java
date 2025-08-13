@@ -96,7 +96,7 @@ abstract class FlutterAssetManager {
      *     paths to assets registered by Flutter.
      */
     PluginBindingFlutterAssetManager(
-        AssetManager assetManager, FlutterPlugin.FlutterAssets flutterAssets) {
+            AssetManager assetManager, FlutterPlugin.FlutterAssets flutterAssets) {
       super(assetManager);
       this.flutterAssets = flutterAssets;
     }
@@ -104,6 +104,28 @@ abstract class FlutterAssetManager {
     @Override
     public String getAssetFilePathByName(String name) {
       return flutterAssets.getAssetFilePathByName(name);
+    }
+  }
+
+  // Flutter 3.32.7 이상을 위한 새로운 생성자 추가
+  static class LegacyFlutterAssetManager extends FlutterAssetManager {
+    final String assetPath;
+
+    /**
+     * Constructs a new instance of the {@link LegacyFlutterAssetManager} for older Flutter versions.
+     *
+     * @param assetManager Instance of Android's {@link AssetManager} used to access assets within
+     *     the App bundle.
+     * @param assetPath Base path for Flutter assets.
+     */
+    LegacyFlutterAssetManager(AssetManager assetManager, String assetPath) {
+      super(assetManager);
+      this.assetPath = assetPath;
+    }
+
+    @Override
+    public String getAssetFilePathByName(String name) {
+      return assetPath + "/" + name;
     }
   }
 }

@@ -1,8 +1,8 @@
-// Copyright 2013 The Flutter Authors. All rights reserved.
+/ Copyright 2013 The Flutter Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-package io.flutter.plugins.webviewflutter;
+        package io.flutter.plugins.webviewflutter;
 
 import android.content.Context;
 import android.os.Build;
@@ -78,86 +78,98 @@ public class WebViewFlutterPlugin implements FlutterPlugin, ActivityAware {
   }
 
   private void setUp(
-      BinaryMessenger binaryMessenger,
-      PlatformViewRegistry viewRegistry,
-      Context context,
-      FlutterAssetManager flutterAssetManager) {
+          BinaryMessenger binaryMessenger,
+          PlatformViewRegistry viewRegistry,
+          Context context,
+          FlutterAssetManager flutterAssetManager) {
     instanceManager =
-        InstanceManager.create(
-            identifier ->
-                new GeneratedAndroidWebView.JavaObjectFlutterApi(binaryMessenger)
-                    .dispose(identifier, reply -> {}));
+            InstanceManager.create(
+                    identifier ->
+                            new GeneratedAndroidWebView.JavaObjectFlutterApi(binaryMessenger)
+                                    .dispose(identifier, reply -> {}));
 
     InstanceManagerHostApi.setup(binaryMessenger, () -> instanceManager.clear());
 
     viewRegistry.registerViewFactory(
-        "plugins.flutter.io/webview", new FlutterViewFactory(instanceManager));
+            "plugins.flutter.io/webview", new FlutterViewFactory(instanceManager));
 
     webViewHostApi =
-        new WebViewHostApiImpl(
-            instanceManager, binaryMessenger, new WebViewHostApiImpl.WebViewProxy(), context);
+            new WebViewHostApiImpl(
+                    instanceManager, binaryMessenger, new WebViewHostApiImpl.WebViewProxy(), context);
     javaScriptChannelHostApi =
-        new JavaScriptChannelHostApiImpl(
-            instanceManager,
-            new JavaScriptChannelHostApiImpl.JavaScriptChannelCreator(),
-            new JavaScriptChannelFlutterApiImpl(binaryMessenger, instanceManager),
-            new Handler(context.getMainLooper()));
+            new JavaScriptChannelHostApiImpl(
+                    instanceManager,
+                    new JavaScriptChannelHostApiImpl.JavaScriptChannelCreator(),
+                    new JavaScriptChannelFlutterApiImpl(binaryMessenger, instanceManager),
+                    new Handler(context.getMainLooper()));
 
     JavaObjectHostApi.setup(binaryMessenger, new JavaObjectHostApiImpl(instanceManager));
     WebViewHostApi.setup(binaryMessenger, webViewHostApi);
     JavaScriptChannelHostApi.setup(binaryMessenger, javaScriptChannelHostApi);
     WebViewClientHostApi.setup(
-        binaryMessenger,
-        new WebViewClientHostApiImpl(
-            instanceManager,
-            new WebViewClientHostApiImpl.WebViewClientCreator(),
-            new WebViewClientFlutterApiImpl(binaryMessenger, instanceManager)));
+            binaryMessenger,
+            new WebViewClientHostApiImpl(
+                    instanceManager,
+                    new WebViewClientHostApiImpl.WebViewClientCreator(),
+                    new WebViewClientFlutterApiImpl(binaryMessenger, instanceManager)));
     WebChromeClientHostApi.setup(
-        binaryMessenger,
-        new WebChromeClientHostApiImpl(
-            instanceManager,
-            new WebChromeClientHostApiImpl.WebChromeClientCreator(),
-            new WebChromeClientFlutterApiImpl(binaryMessenger, instanceManager)));
+            binaryMessenger,
+            new WebChromeClientHostApiImpl(
+                    instanceManager,
+                    new WebChromeClientHostApiImpl.WebChromeClientCreator(),
+                    new WebChromeClientFlutterApiImpl(binaryMessenger, instanceManager)));
     DownloadListenerHostApi.setup(
-        binaryMessenger,
-        new DownloadListenerHostApiImpl(
-            instanceManager,
-            new DownloadListenerHostApiImpl.DownloadListenerCreator(),
-            new DownloadListenerFlutterApiImpl(binaryMessenger, instanceManager)));
+            binaryMessenger,
+            new DownloadListenerHostApiImpl(
+                    instanceManager,
+                    new DownloadListenerHostApiImpl.DownloadListenerCreator(),
+                    new DownloadListenerFlutterApiImpl(binaryMessenger, instanceManager)));
     WebSettingsHostApi.setup(
-        binaryMessenger,
-        new WebSettingsHostApiImpl(
-            instanceManager, new WebSettingsHostApiImpl.WebSettingsCreator()));
+            binaryMessenger,
+            new WebSettingsHostApiImpl(
+                    instanceManager, new WebSettingsHostApiImpl.WebSettingsCreator()));
     FlutterAssetManagerHostApi.setup(
-        binaryMessenger, new FlutterAssetManagerHostApiImpl(flutterAssetManager));
+            binaryMessenger, new FlutterAssetManagerHostApiImpl(flutterAssetManager));
     CookieManagerHostApi.setup(
-        binaryMessenger, new CookieManagerHostApiImpl(binaryMessenger, instanceManager));
+            binaryMessenger, new CookieManagerHostApiImpl(binaryMessenger, instanceManager));
     WebStorageHostApi.setup(
-        binaryMessenger,
-        new WebStorageHostApiImpl(instanceManager, new WebStorageHostApiImpl.WebStorageCreator()));
+            binaryMessenger,
+            new WebStorageHostApiImpl(instanceManager, new WebStorageHostApiImpl.WebStorageCreator()));
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
       PermissionRequestHostApi.setup(
-          binaryMessenger, new PermissionRequestHostApiImpl(binaryMessenger, instanceManager));
+              binaryMessenger, new PermissionRequestHostApiImpl(binaryMessenger, instanceManager));
     }
     GeolocationPermissionsCallbackHostApi.setup(
-        binaryMessenger,
-        new GeolocationPermissionsCallbackHostApiImpl(binaryMessenger, instanceManager));
+            binaryMessenger,
+            new GeolocationPermissionsCallbackHostApiImpl(binaryMessenger, instanceManager));
     CustomViewCallbackHostApi.setup(
-        binaryMessenger, new CustomViewCallbackHostApiImpl(binaryMessenger, instanceManager));
+            binaryMessenger, new CustomViewCallbackHostApiImpl(binaryMessenger, instanceManager));
     HttpAuthHandlerHostApi.setup(
-        binaryMessenger, new HttpAuthHandlerHostApiImpl(binaryMessenger, instanceManager));
+            binaryMessenger, new HttpAuthHandlerHostApiImpl(binaryMessenger, instanceManager));
   }
 
   @Override
   public void onAttachedToEngine(@NonNull FlutterPluginBinding binding) {
     pluginBinding = binding;
+
+    // Flutter 버전에 따른 호환성 처리
+    FlutterAssetManager assetManager;
+    try {
+      // Flutter 3.32.7 이상용
+      assetManager = new FlutterAssetManager.PluginBindingFlutterAssetManager(
+              binding.getApplicationContext().getAssets(), binding.getFlutterAssets());
+    } catch (Exception e) {
+      // Flutter 3.32.7 미만용 (레거시 지원)
+      assetManager = new FlutterAssetManager.LegacyFlutterAssetManager(
+              binding.getApplicationContext().getAssets(), "flutter_assets");
+    }
+
     setUp(
-        binding.getBinaryMessenger(),
-        binding.getPlatformViewRegistry(),
-        binding.getApplicationContext(),
-        new FlutterAssetManager.PluginBindingFlutterAssetManager(
-            binding.getApplicationContext().getAssets(), binding.getFlutterAssets()));
+            binding.getBinaryMessenger(),
+            binding.getPlatformViewRegistry(),
+            binding.getApplicationContext(),
+            assetManager);
   }
 
   @Override
@@ -180,7 +192,7 @@ public class WebViewFlutterPlugin implements FlutterPlugin, ActivityAware {
 
   @Override
   public void onReattachedToActivityForConfigChanges(
-      @NonNull ActivityPluginBinding activityPluginBinding) {
+          @NonNull ActivityPluginBinding activityPluginBinding) {
     updateContext(activityPluginBinding.getActivity());
   }
 
